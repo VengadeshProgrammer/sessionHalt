@@ -1,6 +1,5 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
-import {supabase} from '../supabaseClient'
 import { sha256Hash } from '../sha256';
 const Signup = () => {
   const [username, setUsername] = React.useState('');
@@ -34,7 +33,21 @@ function getDeviceInfo() {
     hardwareConcurrency: navigator.hardwareConcurrency || 0
   };
 }
+  function detectCanvasTampering() {
+    const funcStr = HTMLCanvasElement.prototype.toDataURL.toString();
+    const pointerOk = (canvas.toDataURL === HTMLCanvasElement.prototype.toDataURL);
+         if (!funcStr.includes('[native code]') || !pointerOk) {
+        alert("⚠️ Possible canvas.toDataURL() tampering detected!, Don't try to hack!");
+        return "tampered";
+        } else {
+        return "notampered";
+        }
+  }
 async function getHashedFingerprintString() {
+  if(detectCanvasTampering() === "tampered") {
+    // code to remove the cookie and logout the user
+
+  } else {
   const canvasFP = getCanvasFingerprint();
   const deviceInfo = getDeviceInfo();
 
@@ -46,56 +59,25 @@ async function getHashedFingerprintString() {
   let combinedFingerprintHash = await sha256Hash(combinedFingerprint);
   return combinedFingerprintHash;
 }
+}
 
   async function handleOnSignup(e) {
-  e.preventDefault();
-
-  if (!username || !email || !password) {
-    alert("Please fill in all fields");
-    return;
-  }
-
-  // 1️⃣ Check if user already exists (by email or username)
-  const { data: existingUser, error: checkError } = await supabase
-    .from("users")
-    .select("id")
-    .or(`email.eq.${email},username.eq.${username}`); // check both email & username
-
-  if (checkError) {
-    console.error("Error checking existing user:", checkError);
-    alert("Something went wrong while checking for existing users.");
-    return;
-  }
-
-  if (existingUser && existingUser.length > 0) {
-    alert("User with this email or username already exists!");
-    return;
-  }
-
-  // 2️⃣ Hash the password
-  const passwordHash = await sha256Hash(password);
-
-  // 3️⃣ Insert new user
-  const { data, error } = await supabase
-    .from("users")
-    .insert([
-      {
-        email,
-        username,
-        password_hash: passwordHash,
-      },
-    ])
-    .select("*"); // to get inserted row back
-
-  if (error) {
-    console.error("Error creating user:", error);
-    alert("Failed to create user.");
-    return;
-  }
-
-  console.log("User added:", data);
-  alert("Signup successful!");
-  return true;
+    e.preventDefault();
+  const hashedFingerprint = await getHashedFingerprintString(); // from earlier code
+    let passwordHash = await sha256Hash(password);
+  const res = await fetch("http://localhost:5000/signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      email,
+      username,
+      password: passwordHash,
+      fingerprint: hashedFingerprint,
+    }),
+  });
+  const data = await res.json();
+  console.log(data);
 }
 /* const fingerprintString = getHashedFingerprintString();
   console.log("Hashed fingerprint:", fingerprintString.then((hash) => console.log(hash)));

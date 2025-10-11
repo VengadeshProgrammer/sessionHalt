@@ -1,13 +1,14 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
-import {supabase} from '../supabaseClient'
+// import {supabase} from '../supabaseClient'
 import { sha256Hash } from '../sha256';
 const Login = () => {
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
   
     async function handleOnLogin(e) {
-    e.preventDefault();
+      e.preventDefault();
+    /*
       console.log(email,password);
     if (!email || !password) {
       alert("Please fill in all fields");
@@ -35,6 +36,7 @@ const Login = () => {
   alert("No account found with this email + password!");
     return true;
   }
+  */}
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white p-6 sm:p-8 rounded-xl shadow-md">
