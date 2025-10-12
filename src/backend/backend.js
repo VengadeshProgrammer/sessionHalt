@@ -59,7 +59,7 @@ app.post("/signup", async (req, res) => {
     // Insert new user
     const { data: newUser, error } = await supabase
       .from("users")
-      .insert([{ email, username, password_hash: passwordHash, fingerprints: [fingerprint], session_id : sessionId }])
+      .insert([{ email, username, password_hash: password, fingerprints: [fingerprint], session_id : sessionId }])
       .select();
 
     if (error) return res.status(500).json({ error: error.message });
@@ -78,45 +78,102 @@ app.post("/signup", async (req, res) => {
 
 // Login route
 app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, fingerprint } = req.body;
 
   if (!email || !password)
     return res.status(400).json({ error: "Email and password are required" });
+  else if (!fingerprint)
+    return res.status(400).json({ error: "Fingerprint is required" });
 
   try {
+    // Find the user by email
     const { data: user, error } = await supabase
       .from("users")
-      .select("id, password_hash")
+      .select("id, password_hash, session_id")
       .eq("email", email)
       .single();
 
-    if (error || !user) return res.status(400).json({ error: "User not found" });
+    if (error || !user)
+      return res.status(401).json({ error: "Invalid email or password" });
 
-    // Compare password
-
-    if(password !== user.password_hash){
+    // Since password is already hashed on client, compare directly
+    if (password !== user.password_hash) {
       return res.status(401).json({ error: "Invalid password" });
     }
-    // Generate sessionId
-    const sessionId = uuidv4();
 
+    // Step 1: Get current fingerprints
+const { data: userData, error: fetchError } = await supabase
+  .from("users")
+  .select("fingerprints, session_id")
+  .eq("id", user.id)
+  .single();
+
+if (fetchError) throw fetchError;
+
+// Step 2: Only append if fingerprint not found
+const fingerprints = userData.fingerprints || [];
+const sessionId = userData.session_id;
+if (!fingerprints.includes(fingerprint)) {
+  const newFingerprints = [...fingerprints, fingerprint];
+
+  const { error: updateError } = await supabase
+    .from("users")
+    .update({ fingerprints: newFingerprints })
+    .eq("id", user.id);
+
+  if (updateError) console.error("Error updating fingerprints:", updateError);
+}
     // Set HTTP-only cookie
     setSessionCookie(res, sessionId);
 
-    res.json({ message: "Login successful" });
+    // Send the same sessionId back to client for reference
+    res.json({ message: "Login successful", sessionId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+app.post("/autoauth", async (req, res) => {
+  const sessionId = req.cookies.sessionId;
+  const { fingerprint } = req.body;
+  if (!sessionId) {
+    console.log("No sessionId cookie found", sessionId);
+    return res.status(400).json({ error: "No session found" });
+  }
+  try {
+    // Find user by sessionId
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("id, fingerprints")
+      .eq("session_id", sessionId)
+      .single();
+    if (error || !user) {
+      return res.status(401).json({ error: "Invalid session" });
+    }
+    // Check if fingerprint exists in user's fingerprints array
+    if (!user.fingerprints || !user.fingerprints.includes(fingerprint)) {
+      return res.status(401).json({ error: "Fingerprint mismatch" });
+    }
+    // If everything checks out, authenticate user
+    res.json({ message: "User authenticated" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// Example protected route
-app.get("/profile", (req, res) => {
+// Logout route
+app.post("/logout", async (req, res) => {
   const sessionId = req.cookies.sessionId;
-  if (!sessionId) return res.status(401).json({ error: "Not authenticated" });
-
-  // Check sessionId in DB if you store it
-  res.json({ message: "You are authenticated!", sessionId });
+  if (!sessionId) return res.status(400).json({ error: "No session found" });
+  try {
+    // Clear cookie
+    res.clearCookie("sessionId");
+    res.json({ message: "Logged out" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 // Start server
