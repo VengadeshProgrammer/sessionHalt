@@ -1,13 +1,34 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import { Link } from 'react-router-dom';
+import { getHashedFingerprintString } from '../Fingerprint/fingerprint';
 // import {supabase} from '../supabaseClient'
+import { autoAuth } from '../autoAuth';
 import { sha256Hash } from '../sha256';
 const Login = () => {
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
-  
+    let hashedFingerprint = null;
+  useEffect(() => {
+    (async ()=>{
+      hashedFingerprint = await getHashedFingerprintString();
+    console.log(await autoAuth(hashedFingerprint));
+    })();
+  }, []);
     async function handleOnLogin(e) {
       e.preventDefault();
+       const passwordHash = await sha256Hash(password);
+       const res = await fetch("http://localhost:5000/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      email,
+      password: passwordHash,
+      fingerprint: hashedFingerprint,
+    }),
+  });
+  const data = await res.json();
+  console.log(data.message);
     /*
       console.log(email,password);
     if (!email || !password) {
