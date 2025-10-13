@@ -59,6 +59,7 @@ npm install sessionHalt
   const fingerprint = await getFingerprintString();
   console.log("Device Fingerprint:", fingerprint);
 })();`
+```
 Integrate this fingerprint with your session authentication system to prevent session hijacking.
 
 ## 📦 Source Code
@@ -71,4 +72,3 @@ Demo Website Source Code
 * Works with HTTPS
 * Easy to integrate with existing session-based systems
 * Reduces risk of session hijacking
-```
