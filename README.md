@@ -67,11 +67,8 @@ The npm package source code is available on GitHub:
 Demo Website Source Code
 ##⚡ Features
 * Unique device fingerprint generation
-
 * Canvas tampering detection
-
 * Works with HTTPS
-
 * Easy to integrate with existing session-based systems
-
 * Reduces risk of session hijacking
+```
