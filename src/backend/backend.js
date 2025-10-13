@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
+import { generateSessionId } from "../generateSessionId.js";
 
 dotenv.config();
 
@@ -36,9 +37,9 @@ const setSessionCookie = (res, sessionId) => {
 };
 
 // Signup route
-app.post("/signup", async (req, res) => {
+app.post("/signup", async (req, res) => { 
   const { email, username, password, fingerprint } = req.body;
-
+console.log(email, username, password, fingerprint);
   if (!email || !username || !password || !fingerprint) {
     return res.status(400).json({ error: "All fields are required" });
   }
@@ -53,8 +54,8 @@ app.post("/signup", async (req, res) => {
 
     if (existingUser) return res.status(400).json({ error: "User already exists" });
     
-    // Generate sessionId
-    const sessionId = crypto.randomBytes(32).toString("hex");
+   const sessionId = generateSessionId();
+
 
     // Insert new user
     const { data: newUser, error } = await supabase
@@ -68,8 +69,7 @@ app.post("/signup", async (req, res) => {
 
     // Set HTTP-only cookie
     setSessionCookie(res, sessionId);
-
-    res.json({ message: "User created" });
+    res.json({ message: "User authenticated", redirectTo: "/home" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
@@ -127,7 +127,7 @@ if (!fingerprints.includes(fingerprint)) {
     setSessionCookie(res, sessionId);
 
     // Send the same sessionId back to client for reference
-    res.json({ message: "Login successful", sessionId });
+    res.json({ message: "User authenticated", redirectTo: "/home" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
@@ -151,11 +151,10 @@ app.post("/autoauth", async (req, res) => {
       return res.status(401).json({ error: "Invalid session" });
     }
     // Check if fingerprint exists in user's fingerprints array
-    if (!user.fingerprints || !user.fingerprints.includes(fingerprint)) {
+    if (!user.fingerprints || !user.fingerprints.includes(fingerprint) && sessionId) {
       return res.status(401).json({ error: "Fingerprint mismatch" });
     }
-    // If everything checks out, authenticate user
-    res.json({ message: "User authenticated" });
+    res.json({ message: "User authenticated", redirectTo: "/home" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });

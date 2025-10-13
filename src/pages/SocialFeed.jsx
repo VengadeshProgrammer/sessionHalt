@@ -1,14 +1,34 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import firstPost from "../assets/firstPost.png"
 import secondPost from "../assets/secondPost.png"
+import Spinner from "../components/Spinner";
+import { getHashedFingerprintString } from "../Fingerprint/fingerprint";
+import { autoAuth } from "../autoAuth";
 export default function SocialFeed() {
   // Example static data
   const posts = [
     { id: 1, title: "Design", img: firstPost },
     { id: 2, title: "3d Model", img: secondPost },
   ];
+  const [Loaded, setLoaded] = useState(false);
+  const [hashedFingerprint, setHashedFingerprint] = useState(null);
+  useEffect(() => {
+(async () => {
+    try {
+      const fingerprint = await getHashedFingerprintString();
+      setHashedFingerprint(fingerprint);
+      console.log("Fingerprint:", fingerprint);
 
+      const res = await autoAuth(fingerprint);
+      console.log(res);
+      setLoaded(true);
+    } catch (err) {
+      console.error("AutoAuth failed:", err);
+    }
+  })();
+  }, []);
   return (
+    Loaded ? 
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-12">
       <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center text-gray-800">
         Social Feed
@@ -32,5 +52,6 @@ export default function SocialFeed() {
         ))}
       </div>
     </div>
+    : <div className="w-screen h-screen flex justify-center items-center"><Spinner size="w-16 h-16" color="border-indigo-500" spinning={true} /></div>
   );
 }

@@ -3,20 +3,46 @@ import { Link } from 'react-router-dom';
 import { sha256Hash } from '../sha256';
 import { getHashedFingerprintString } from '../Fingerprint/fingerprint';
 import { autoAuth } from '../autoAuth';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import Spinner from '../components/Spinner';
 const Signup = () => {
+  const navigate = useNavigate();
   const [username, setUsername] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
-  let hashedFingerprint = null;
+  const [hashedFingerprint, setHashedFingerprint] = React.useState(null);
+  const [Loaded, setLoaded] = useState(false);
 useEffect(() => {
-  (async ()=>{
-    hashedFingerprint = await getHashedFingerprintString();
-  console.log(await autoAuth(hashedFingerprint));
+  (async () => {
+    try {
+      const fingerprint = await getHashedFingerprintString();
+      setHashedFingerprint(fingerprint);
+      console.log("Fingerprint:", fingerprint);
+
+      const res = await autoAuth(fingerprint);
+      console.log(res);
+
+      if (res?.redirectTo) {
+        navigate(res.redirectTo);
+      } else if (res?.error) {
+        console.warn("AutoAuth error:", res.error);
+        setLoaded(true);
+      }
+    } catch (err) {
+      console.error("AutoAuth failed:", err);
+      setLoaded(true);
+    }
   })();
-}, []);
+}, [navigate]);
+
+
   async function handleOnSignup(e) {
-    e.preventDefault();
-    let passwordHash = await sha256Hash(password);
+  e.preventDefault();
+  setLoaded(false);
+  let passwordHash = await sha256Hash(password);
+  console.log(hashedFingerprint);
+  
   const res = await fetch("http://localhost:5000/signup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -28,10 +54,20 @@ useEffect(() => {
       fingerprint: hashedFingerprint,
     }),
   });
+  
   const data = await res.json();
   console.log(data);
+  
+  // ADD THIS: Handle redirect after signup
+  if (data?.redirectTo) {
+    navigate(data.redirectTo);
+  } else if (data?.error) {
+    console.error("Signup error:", data.error);
+    setLoaded(true); // Make sure to show the form again on error
+  }
 }
   return (
+    Loaded ? 
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white p-6 sm:p-8 rounded-xl shadow-md">
         <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center text-gray-800">
@@ -89,8 +125,8 @@ useEffect(() => {
           </Link>
         </p>
       </div>
-    </div>
-  )
+    </div> : <div className="w-screen h-screen flex justify-center items-center"><Spinner size="w-16 h-16" color="border-indigo-500" spinning={true} /></div>
+  ) 
 }
 
 export default Signup
