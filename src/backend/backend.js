@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 import { generateSessionId } from "../generateSessionId.js";
+import { redirect } from "react-router-dom";
 
 dotenv.config();
 
@@ -168,7 +169,7 @@ app.post("/logout", async (req, res) => {
   try {
     // Clear cookie
     res.clearCookie("sessionId");
-    res.json({ message: "Logged out" });
+    res.json({ message: "Logged out", redirectTo: "/login" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });

@@ -1,6 +1,7 @@
 import React from 'react'
-
+import { useNavigate } from 'react-router-dom';
 const Logout = () => {
+  const navigate = useNavigate();
     async function logoutUser() {
   const res = await fetch("http://localhost:5000/logout", {
       method: "POST",
@@ -10,7 +11,10 @@ const Logout = () => {
       },
     });
     const data = await res.json();
-    console.log(data.message);
+    console.log(data);
+    if (data.redirectTo) {
+  navigate(data.redirectTo); // ✅ Redirect handled by React Router
+  }
     }
     return (
     <div>
