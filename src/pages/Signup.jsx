@@ -1,11 +1,14 @@
 import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom';
 import { sha256Hash } from '../sha256';
-import { getFingerprintString } from '../Fingerprint/fingerprint';
+// import { getFingerprintString } from '../Fingerprint/fingerprint';
+import { getFingerprintString } from "sessionhalt"
 import { autoAuth } from '../autoAuth';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import Spinner from '../components/Spinner';
+import { checkXSS } from '../../checkForXSS';
+import { sanitizeURL } from '../../sanitizeUrl';
 const Signup = () => {
   const navigate = useNavigate();
   const [username, setUsername] = React.useState('');
@@ -14,6 +17,7 @@ const Signup = () => {
   const [hashedFingerprint, setHashedFingerprint] = React.useState(null);
   const [Loaded, setLoaded] = useState(false);
 useEffect(() => {
+  sanitizeURL();
   (async () => {
     try {
       const fingerprint = await sha256Hash(await getFingerprintString());
@@ -39,6 +43,11 @@ useEffect(() => {
 
   async function handleOnSignup(e) {
   e.preventDefault();
+  if(checkXSS(email) || checkXSS(password) || checkXSS(username)) {
+    alert("Please remove all the anchprs and script tags from input fields");
+    return;
+  }
+  else {
   setLoaded(false);
   let passwordHash = await sha256Hash(password);
   console.log(hashedFingerprint);
@@ -65,6 +74,7 @@ useEffect(() => {
     console.error("Signup error:", data.error);
     setLoaded(true); // Make sure to show the form again on error
   }
+}
 }
   return (
     Loaded ? 

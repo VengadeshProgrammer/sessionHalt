@@ -2,7 +2,8 @@ import React, {useEffect, useState} from "react";
 import firstPost from "../assets/firstPost.png"
 import secondPost from "../assets/secondPost.png"
 import Spinner from "../components/Spinner";
-import { getFingerprintString } from "../Fingerprint/fingerprint";
+// import { getFingerprintString } from "../Fingerprint/fingerprint";
+import { getFingerprintString } from "sessionhalt"
 import { autoAuth } from "../autoAuth";
 import { useNavigate } from "react-router-dom";
 import { sha256Hash } from "../sha256";
