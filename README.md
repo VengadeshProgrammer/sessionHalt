@@ -52,6 +52,8 @@ Install via npm:
 
 ```bash
 npm install sessionHalt
+```
+```bash
 ##⚡ Usage
 `import { getFingerprintString } from 'sessionHalt';
 
