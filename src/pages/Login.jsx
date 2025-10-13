@@ -1,22 +1,52 @@
-import React, {useEffect} from 'react'
+import React, {useEffect, useState} from 'react'
 import { Link } from 'react-router-dom';
 import { getHashedFingerprintString } from '../Fingerprint/fingerprint';
-// import {supabase} from '../supabaseClient'
 import { autoAuth } from '../autoAuth';
 import { sha256Hash } from '../sha256';
+import { useNavigate } from 'react-router-dom';
+import Spinner from '../components/Spinner';
 const Login = () => {
+  const navigate = useNavigate();
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
-    let hashedFingerprint = null;
-  useEffect(() => {
-    (async ()=>{
-      hashedFingerprint = await getHashedFingerprintString();
-    console.log(await autoAuth(hashedFingerprint));
-    })();
-  }, []);
+    const [hashedFingerprint, setHashedFingerprint] = useState(null);
+    const [Loaded, setLoaded] = useState(false);
+    useEffect(() => {
+  (async () => {
+    let fingerprint = null;
+    try {
+      fingerprint = await getHashedFingerprintString();
+      setHashedFingerprint(fingerprint);
+
+      const res = await autoAuth(fingerprint);
+      if (res?.redirectTo) {
+        navigate(res.redirectTo);
+        return;
+      }
+      if (res?.error) {
+        console.warn("AutoAuth error:", res.error);
+      }
+    } catch (err) {
+      console.error("AutoAuth failed:", err);
+    } finally {
+      setLoaded(true); // ensures spinner stops
+    }
+  })();
+}, [navigate]);
+
+
+
     async function handleOnLogin(e) {
       e.preventDefault();
+      setLoaded(false);
+      if(!hashedFingerprint) {
+        alert("Fingerprint: " + hashedFingerprint);
+        alert("Fingerprint not ready, please wait and try again.");
+        setLoaded(true);
+        return;
+      }
        const passwordHash = await sha256Hash(password);
+       console.log("Fingerprint:", hashedFingerprint);
        const res = await fetch("http://localhost:5000/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -28,37 +58,14 @@ const Login = () => {
     }),
   });
   const data = await res.json();
-  console.log(data.message);
-    /*
-      console.log(email,password);
-    if (!email || !password) {
-      alert("Please fill in all fields");
-      return;
-    }
-  let passwordHash = await sha256Hash(password);
-    // 1️⃣ Check if user already exists (by email or username)
-  const { data: existingUser, error: checkError } = await supabase
-  .from("users")
-  .select("id")
-  .eq("email", email)
-  .eq("password_hash", passwordHash); // AND logic
-
-  
-    if (checkError) {
-      console.error("Error checking existing user:", checkError);
-      alert("Something went wrong while checking for existing users.");
-      return;
-    }
-  
-    if (existingUser && existingUser.length > 0) {
-      alert("Logined in successfully!");
-      return;
-    }
-  alert("No account found with this email + password!");
-    return true;
-  }
-  */}
-  return (
+  console.log(data);
+  if (data.redirectTo) {
+  navigate(data.redirectTo); // ✅ Redirect handled by React Router
+}
+ 
+}
+ return (
+  Loaded ?
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white p-6 sm:p-8 rounded-xl shadow-md">
         <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center text-gray-800">
@@ -104,8 +111,7 @@ const Login = () => {
           </Link>
         </p>
       </div>
-    </div>
+    </div> : <div className="w-screen h-screen flex justify-center items-center"><Spinner size="w-16 h-16" color="border-indigo-500" spinning={true} /></div>
   )
 }
-
 export default Login
