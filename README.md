@@ -1,16 +1,77 @@
-# React + Vite
+# sessionHalt
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![npm version](https://img.shields.io/npm/v/sessionHalt)](https://www.npmjs.com/package/sessionHalt)
+[![npm downloads](https://img.shields.io/npm/dt/sessionHalt)](https://www.npmjs.com/package/sessionHalt)
+[![License](https://img.shields.io/npm/l/sessionHalt)](LICENSE)
 
-Currently, two official plugins are available:
+**sessionHalt** is a JavaScript npm package designed to prevent **session hijacking** by generating a unique device fingerprint. It works alongside session IDs to make unauthorized session reuse extremely difficult.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 🔒 Problem
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Session hijacking occurs when a malicious user steals an active session to gain unauthorized access. Even major platforms like Instagram, Netflix, and YouTube face these threats, potentially leading to privacy breaches and account misuse.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🚀 Solution
+
+`sessionHalt` generates a **unique fingerprint** for each device by combining:
+
+- **Canvas fingerprinting** (with tampering detection)
+- **Device information**:
+  - OS (`navigator.platform`)
+  - Browser (`navigator.userAgent`)
+  - Screen width & height
+  - Device pixel ratio
+  - Device memory
+  - Color depth
+  - Hardware concurrency (CPU cores)
+
+The fingerprint is stored alongside the session ID, preventing session reuse on different devices. Canvas tampering detection stops malicious browser extensions from faking fingerprints.
+
+---
+
+## 📊 Demo / Metrics
+
+Simulated tests show:
+
+| Attempt Type          | Total Attempts | Blocked | TPR / FPR |
+|----------------------|----------------|---------|-----------|
+| Session reuse attack  | 2              | 2       | 100%      |
+| Legitimate login      | 5              | 0       | 0%        |
+
+> True-positive rate (TPR): % of attacks blocked  
+> False-positive rate (FPR): % of legitimate logins incorrectly blocked
+
+---
+
+## 💻 Installation
+
+Install via npm:
+
+```bash
+npm install sessionHalt
+##⚡ Usage
+`import { getFingerprintString } from 'sessionHalt';
+
+(async () => {
+  const fingerprint = await getFingerprintString();
+  console.log("Device Fingerprint:", fingerprint);
+})();`
+Integrate this fingerprint with your session authentication system to prevent session hijacking.
+
+## 📦 Source Code
+The npm package source code is available on GitHub:
+
+Demo Website Source Code
+##⚡ Features
+* Unique device fingerprint generation
+
+* Canvas tampering detection
+
+* Works with HTTPS
+
+* Easy to integrate with existing session-based systems
+
+* Reduces risk of session hijacking
