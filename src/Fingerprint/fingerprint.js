@@ -1,4 +1,3 @@
-import { sha256Hash } from "../sha256";
 function getDeviceInfo() {
   return {
     os: navigator.platform || "unknown",
@@ -39,7 +38,7 @@ function getCanvasFingerprint() {
 
   return canvas.toDataURL();
 }
-export async function getHashedFingerprintString() {
+export async function getFingerprintString() {
   if(detectCanvasTampering() === "tampered") {
     // code to remove the cookie and logout the user
     console.log("⚠️ Possible canvas.toDataURL() tampering detected!, Don't try to hack!");
@@ -53,7 +52,6 @@ export async function getHashedFingerprintString() {
 
   // Combine canvas + device info
   let combinedFingerprint = canvasFP + "::" + deviceString;
-  let combinedFingerprintHash = await sha256Hash(combinedFingerprint);
-  return combinedFingerprintHash;
+  return combinedFingerprint;
 }
 }

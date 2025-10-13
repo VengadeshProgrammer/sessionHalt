@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import { Link } from 'react-router-dom';
-import { getHashedFingerprintString } from '../Fingerprint/fingerprint';
+import { getFingerprintString } from '../Fingerprint/fingerprint';
 import { autoAuth } from '../autoAuth';
 import { sha256Hash } from '../sha256';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +15,7 @@ const Login = () => {
   (async () => {
     let fingerprint = null;
     try {
-      fingerprint = await getHashedFingerprintString();
+      fingerprint = await sha256Hash(await getFingerprintString());
       setHashedFingerprint(fingerprint);
 
       const res = await autoAuth(fingerprint);
@@ -40,7 +40,6 @@ const Login = () => {
       e.preventDefault();
       setLoaded(false);
       if(!hashedFingerprint) {
-        alert("Fingerprint: " + hashedFingerprint);
         alert("Fingerprint not ready, please wait and try again.");
         setLoaded(true);
         return;

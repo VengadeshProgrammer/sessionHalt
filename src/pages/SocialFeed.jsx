@@ -2,9 +2,12 @@ import React, {useEffect, useState} from "react";
 import firstPost from "../assets/firstPost.png"
 import secondPost from "../assets/secondPost.png"
 import Spinner from "../components/Spinner";
-import { getHashedFingerprintString } from "../Fingerprint/fingerprint";
+import { getFingerprintString } from "../Fingerprint/fingerprint";
 import { autoAuth } from "../autoAuth";
+import { useNavigate } from "react-router-dom";
+import { sha256Hash } from "../sha256";
 export default function SocialFeed() {
+  const navigate = useNavigate();
   // Example static data
   const posts = [
     { id: 1, title: "Design", img: firstPost },
@@ -15,12 +18,15 @@ export default function SocialFeed() {
   useEffect(() => {
 (async () => {
     try {
-      const fingerprint = await getHashedFingerprintString();
+      const fingerprint = await sha256Hash(await getFingerprintString());
       setHashedFingerprint(fingerprint);
       console.log("Fingerprint:", fingerprint);
 
       const res = await autoAuth(fingerprint);
       console.log(res);
+       if(res.error) {
+        navigate("/login");
+       }
       setLoaded(true);
     } catch (err) {
       console.error("AutoAuth failed:", err);

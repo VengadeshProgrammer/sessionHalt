@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom';
 import { sha256Hash } from '../sha256';
-import { getHashedFingerprintString } from '../Fingerprint/fingerprint';
+import { getFingerprintString } from '../Fingerprint/fingerprint';
 import { autoAuth } from '../autoAuth';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -16,7 +16,7 @@ const Signup = () => {
 useEffect(() => {
   (async () => {
     try {
-      const fingerprint = await getHashedFingerprintString();
+      const fingerprint = await sha256Hash(await getFingerprintString());
       setHashedFingerprint(fingerprint);
       console.log("Fingerprint:", fingerprint);
 
