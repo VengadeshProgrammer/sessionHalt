@@ -63,7 +63,7 @@ Integrate this fingerprint with your session authentication system to prevent se
 
 ## 📦 Source Code
 The npm package source code is available on GitHub:
-
+[Go to the source code of the npm package](https://github.com/VengadeshProgrammer/sessionHalt-fingerprint-npm/tree/main)
 Demo Website Source Code
 ##⚡ Features
 * Unique device fingerprint generation
