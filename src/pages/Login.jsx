@@ -1,10 +1,13 @@
 import React, {useEffect, useState} from 'react'
 import { Link } from 'react-router-dom';
-import { getFingerprintString } from '../Fingerprint/fingerprint';
+// import { getFingerprintString } from '../Fingerprint/fingerprint';
+import { getFingerprintString } from "sessionhalt"
 import { autoAuth } from '../autoAuth';
 import { sha256Hash } from '../sha256';
 import { useNavigate } from 'react-router-dom';
 import Spinner from '../components/Spinner';
+import { checkXSS } from '../../checkForXSS';
+import { sanitizeURL } from '../../sanitizeUrl';
 const Login = () => {
   const navigate = useNavigate();
     const [email, setEmail] = React.useState('');
@@ -12,6 +15,7 @@ const Login = () => {
     const [hashedFingerprint, setHashedFingerprint] = useState(null);
     const [Loaded, setLoaded] = useState(false);
     useEffect(() => {
+      sanitizeURL();
   (async () => {
     let fingerprint = null;
     try {
@@ -38,6 +42,10 @@ const Login = () => {
 
     async function handleOnLogin(e) {
       e.preventDefault();
+      if(checkXSS(email) || checkXSS(password)) {
+        alert("Please remove all the anchprs and script tags from input fields");
+      }
+      else{
       setLoaded(false);
       if(!hashedFingerprint) {
         alert("Fingerprint not ready, please wait and try again.");
@@ -58,10 +66,14 @@ const Login = () => {
   });
   const data = await res.json();
   console.log(data);
+  if(data.error) {
+    alert(data.error);
+    setLoaded(true);
+  }
   if (data.redirectTo) {
   navigate(data.redirectTo); // ✅ Redirect handled by React Router
 }
- 
+}
 }
  return (
   Loaded ?
