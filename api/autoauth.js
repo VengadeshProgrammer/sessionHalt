@@ -1,19 +1,21 @@
-import { createClient } from "@supabase/supabase-js";
-import cookie from "cookie";
-  
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.VITE_SUPABASE_ANON_KEY
-);
-
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") 
+    return res.status(405).json({ error: "Method not allowed" });
 
   const cookies = cookie.parse(req.headers.cookie || "");
   const sessionId = cookies.sessionId;
-  const { fingerprint } = req.body;
+
+  let body = {};
+  try {
+    body = JSON.parse(req.body);
+  } catch (err) {
+    return res.status(400).json({ error: "Invalid JSON body" });
+  }
+
+  const { fingerprint } = body;
 
   if (!sessionId) return res.status(400).json({ error: "No session found" });
+  if (!fingerprint) return res.status(400).json({ error: "All fields are required" });
 
   try {
     const { data: user, error } = await supabase
