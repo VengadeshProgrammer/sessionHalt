@@ -26,8 +26,6 @@ export default function SocialFeed() {
       const res = await autoAuth(fingerprint);
       console.log(res);
        if(res.error) {
-        // navigate("/login");
-        alert(res.error + ", Redirecting to login page");
         navigate("/login");
         return;
        }
