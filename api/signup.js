@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { generateSessionId } from "../generateSessionId.js";
+import { generateSessionId } from "./generateSessionId.js";
 import cookie from "cookie";
 
 const supabase = createClient(
