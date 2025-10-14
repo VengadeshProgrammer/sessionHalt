@@ -1,5 +1,5 @@
 export async function autoAuth(fingerprint) {
-    const res = await fetch("http://localhost:5000/autoauth", {
+    const res = await fetch("/api/signup", {
       method: "POST",
       credentials: "include", // ✅ sends the cookie (sessionId)
       headers: {
