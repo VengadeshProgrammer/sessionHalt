@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 const Logout = () => {
   const navigate = useNavigate();
     async function logoutUser() {
-  const res = await fetch("http://localhost:5000/logout", {
+  const res = await fetch("/api/logout", {
       method: "POST",
       credentials: "include", // ✅ sends the cookie (sessionId)
       headers: {
@@ -12,9 +12,6 @@ const Logout = () => {
     });
     const data = await res.json();
     console.log(data);
-    if (data.redirectTo) {
-  navigate(data.redirectTo); // ✅ Redirect handled by React Router
-  }
     }
     return (
     <div>

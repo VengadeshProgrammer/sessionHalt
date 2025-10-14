@@ -54,7 +54,7 @@ const Login = () => {
       }
        const passwordHash = await sha256Hash(password);
        console.log("Fingerprint:", hashedFingerprint);
-       const res = await fetch("http://localhost:5000/login", {
+       const res = await fetch("/api/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
