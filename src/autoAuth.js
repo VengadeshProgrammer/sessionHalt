@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import cookie from "cookie";  // <-- THIS WAS MISSING
-
+console.log(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY);
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
   process.env.VITE_SUPABASE_ANON_KEY
