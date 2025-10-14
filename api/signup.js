@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { generateSessionId } from "./generateSessionId.js";
 import cookie from "cookie";
-console.log(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+console.log(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, "from line 4 of api/signup.js);
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
