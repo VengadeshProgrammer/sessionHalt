@@ -1,7 +1,16 @@
-export default async function handler(req, res) {
-  if (req.method !== "POST") 
+import { createClient } from "@supabase/supabase-js";
+import cookie from "cookie";  // <-- THIS WAS MISSING
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.VITE_SUPABASE_ANON_KEY
+);
+
+export async function autoAuth(req, res) {
+  if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed" });
 
+  // parse cookies
   const cookies = cookie.parse(req.headers.cookie || "");
   const sessionId = cookies.sessionId;
 
