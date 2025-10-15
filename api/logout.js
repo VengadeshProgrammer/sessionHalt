@@ -1,13 +1,12 @@
-// File: /api/logout.js
+// api/logout.js
 import cookie from "cookie";
 
 export default async function handler(req, res) {
-  try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method not allowed" });
-    }
+  if (req.method !== "POST")
+    return res.status(405).json({ error: "Method not allowed" });
 
-    // Clear the sessionId cookie
+  try {
+    // Clear the cookie
     res.setHeader(
       "Set-Cookie",
       cookie.serialize("sessionId", "", {
@@ -15,13 +14,13 @@ export default async function handler(req, res) {
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         path: "/",
-        maxAge: 0, // deletes cookie
+        maxAge: 0, // expire immediately
       })
     );
 
-    return res.status(200).json({ message: "Logged out successfully", redirectTo: "/login" });
+    res.status(200).json({ message: "Logged out successfully", redirectTo: "/login" });
   } catch (err) {
-    console.error("API ERROR:", err);
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error("Logout API error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }
