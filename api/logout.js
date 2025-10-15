@@ -1,20 +1,27 @@
+// File: /api/logout.js
 import cookie from "cookie";
 
-export function logout(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+export default async function handler(req, res) {
+  try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
 
-  const cookies = cookie.parse(req.headers.cookie || "");
-  const sessionId = cookies.sessionId;
+    // Clear the sessionId cookie
+    res.setHeader(
+      "Set-Cookie",
+      cookie.serialize("sessionId", "", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+        maxAge: 0, // deletes cookie
+      })
+    );
 
-  if (!sessionId) return res.status(400).json({ error: "No session found" });
-
-  // Clear the cookie
-  res.setHeader("Set-Cookie", cookie.serialize("sessionId", "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 0
-  }));
-
-  res.status(200).json({ message: "Logged out", redirectTo: "/login" });
+    return res.status(200).json({ message: "Logged out successfully", redirectTo: "/login" });
+  } catch (err) {
+    console.error("API ERROR:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 }
