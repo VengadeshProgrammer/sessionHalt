@@ -1,6 +1,6 @@
 export async function autoAuth(fingerprint) {
   try {
-    const res = await fetch("/api/autoAuth", {  // ✅ absolute path
+    const res = await fetch("/api/autoauth", {  // ✅ absolute path
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
