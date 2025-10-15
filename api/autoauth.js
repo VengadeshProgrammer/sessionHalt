@@ -1,34 +1,26 @@
-import { createClient } from "@supabase/supabase-js";
-import cookie from "cookie";  // <-- THIS WAS MISSING
-console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
-console.log("SUPABASE_ANON_KEY:", process.env.SUPABASE_ANON_KEY);
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
-
 export async function autoAuth(req, res) {
-  if (req.method !== "POST")
-    return res.status(405).json({ error: "Method not allowed" });
-
-  // parse cookies
-  const cookies = cookie.parse(req.headers.cookie || "");
-  const sessionId = cookies.sessionId;
-
-  let body = {};
   try {
-    body = JSON.parse(req.body);
-  } catch (err) {
-    return res.status(400).json({ error: "Invalid JSON body" });
-  }
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { fingerprint } = body;
+    const cookies = cookie.parse(req.headers.cookie || "");
+    const sessionId = cookies.sessionId;
 
-  if (!sessionId) return res.status(400).json({ error: "No session found" });
-  if (!fingerprint) return res.status(400).json({ error: "All fields are required" });
+    let body = {};
+    try { body = JSON.parse(req.body); } 
+    catch { return res.status(400).json({ error: "Invalid JSON body" }); }
 
-  try {
+    const { fingerprint } = body;
+
+    if (!sessionId || !fingerprint) return res.status(400).json({ error: "All fields required" });
+
+    // Ensure env vars exist
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+      console.error("Missing Supabase env vars!");
+      return res.status(500).json({ error: "Server misconfiguration" });
+    }
+
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+
     const { data: user, error } = await supabase
       .from("users")
       .select("id, fingerprints")
@@ -41,9 +33,9 @@ export async function autoAuth(req, res) {
       return res.status(401).json({ error: "Fingerprint mismatch" });
     }
 
-    res.status(200).json({ message: "User authenticated", redirectTo: "/home" });
+    return res.status(200).json({ message: "User authenticated", redirectTo: "/home" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
+    console.error("API error:", err);
+    return res.status(500).json({ error: "Server error" }); // always JSON
   }
 }
