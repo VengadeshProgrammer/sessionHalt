@@ -1,6 +1,6 @@
 export async function autoAuth(fingerprint) {
   try {
-    const res = await fetch("/api/autoAuth", {
+    const res = await fetch("/api/autoAuth", {  // ✅ absolute path
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -8,8 +8,9 @@ export async function autoAuth(fingerprint) {
     });
 
     const text = await res.text();
-    try { return JSON.parse(text); } 
-    catch {
+    try {
+      return JSON.parse(text);
+    } catch {
       console.error("Server returned non-JSON:", text);
       return { error: "Server returned invalid response" };
     }
