@@ -1,7 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import { generateSessionId } from "./generateSessionId.js";
 import cookie from "cookie";
-console.log(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, "from line 4 of api/signup.js);
+
+console.log(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, "from line 4 of api/signup.js");
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
@@ -12,14 +14,22 @@ const setSessionCookie = (res, sessionId) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 1000 * 60 * 60 * 24 * 180
+    path: "/api",
+    maxAge: 180 * 24 * 60 * 60 // 180 days
   }));
 };
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { email, username, password, fingerprint } = req.body;
+  let body = {};
+  try {
+    body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+  } catch {
+    return res.status(400).json({ error: "Invalid JSON body" });
+  }
+
+  const { email, username, password, fingerprint } = body;
 
   if (!email || !username || !password || !fingerprint)
     return res.status(400).json({ error: "All fields are required" });
@@ -38,7 +48,8 @@ export default async function handler(req, res) {
     const { data: newUser, error } = await supabase
       .from("users")
       .insert([{ email, username, password_hash: password, fingerprints: [fingerprint], session_id: sessionId }])
-      .select();
+      .select()
+      .single();
 
     if (error) return res.status(500).json({ error: error.message });
 
@@ -46,7 +57,7 @@ export default async function handler(req, res) {
     res.status(200).json({ message: "User authenticated", redirectTo: "/home" });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
+    console.error("Signup API error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
