@@ -11,7 +11,9 @@ const Logout = () => {
       },
     });
     const data = await res.json();
-    console.log(data);
+    if (data?.redirectTo) {
+      navigate(data.redirectTo); // React Router redirect
+    }
     }
     return (
     <div>
