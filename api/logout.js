@@ -13,7 +13,7 @@ export default async function handler(req, res) {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        path: "/",
+        path: "/api",
         maxAge: 0, // expire immediately
       })
     );
