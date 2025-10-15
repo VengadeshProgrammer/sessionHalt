@@ -39,7 +39,7 @@ Simulated tests show:
 | Attempt Type          | Total Attempts | Blocked | TPR / FPR |
 |----------------------|----------------|---------|-----------|
 | Session reuse attack  | 2              | 2       | 100%      |
-| Legitimate login      | 5              | 0       | 0%        |
+| Legitimate login      | 5              | 0       | ~0%        |
 
 > True-positive rate (TPR): % of attacks blocked  
 > False-positive rate (FPR): % of legitimate logins incorrectly blocked
