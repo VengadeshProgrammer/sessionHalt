@@ -1,12 +1,20 @@
 export async function autoAuth(fingerprint) {
-    const res = await fetch("api/autoauth", {
+  try {
+    const res = await fetch("/api/autoAuth", {
       method: "POST",
-      credentials: "include", // ✅ sends the cookie (sessionId)
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ fingerprint }), // send fingerprint only
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fingerprint }),
     });
-    const data = await res.json();
-   return data;
+
+    const text = await res.text();
+    try { return JSON.parse(text); } 
+    catch {
+      console.error("Server returned non-JSON:", text);
+      return { error: "Server returned invalid response" };
+    }
+  } catch (err) {
+    console.error("Fetch error:", err);
+    return { error: "Network/server error" };
+  }
 }
