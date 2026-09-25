@@ -1,0 +1,1 @@
+//This is the core file. You can use it via installing the node package of this file.
